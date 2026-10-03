@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monaco, in one breath</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&family=Instrument+Serif:ital@0;1&display=swap">
+<style>
+:root{--ink:#120d2b;--peach:#ffb38a;--lilac:#cdb8ff;--sea:#7fe0d4;--haze:#fff1e6;
+--serif:'Instrument Serif',Georgia,serif;--sans:'Figtree',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:var(--ink);color:var(--haze);font-family:var(--sans);overflow:hidden}
+#scene{position:fixed;inset:0;perspective:1100px;overflow:hidden}
+#stage{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+video,#echo{position:absolute;inset:0;width:100%;height:100%}
+video{object-fit:cover;filter:saturate(1.1) contrast(1.03);transform:translateZ(-60px) scale(1.12)}
+#echo{transform:translateZ(90px) scale(.93);pointer-events:none;transition:opacity .5s}
+body.clear #echo{opacity:0}
+#vig{position:fixed;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(18,13,43,.5),transparent 28%,transparent 72%,rgba(18,13,43,.5)),linear-gradient(180deg,rgba(18,13,43,.35),transparent 22%)}
+header{position:fixed;left:max(24px,env(safe-area-inset-left));top:max(22px,env(safe-area-inset-top));text-shadow:0 2px 24px rgba(18,13,43,.6)}
+h1{font:italic 400 clamp(34px,6vw,72px)/.95 var(--serif);letter-spacing:-.01em}
+header p{margin-top:8px;font-size:14px;opacity:.85}
+#panel{position:fixed;right:max(24px,env(safe-area-inset-right));top:max(22px,env(safe-area-inset-top));text-align:right;text-shadow:0 2px 24px rgba(18,13,43,.6)}
+#clock{font:400 clamp(40px,7vw,84px)/1 var(--serif);font-variant-numeric:tabular-nums}
+#corner{margin-top:6px;font:italic 24px var(--serif);color:var(--peach)}
+dl{margin-top:14px;display:grid;grid-template-columns:auto auto;gap:4px 14px;justify-content:end;font-size:13px}
+dt{opacity:.7}dd{font-weight:600;min-width:84px}
+#sw{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:6px;background:#888}
+#bottom{position:fixed;left:0;right:0;bottom:0;padding:0 max(24px,env(safe-area-inset-left)) max(18px,env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(18,13,43,.7))}
+#tl{width:100%;height:96px;display:block;cursor:pointer}
+#facts{display:flex;flex-wrap:wrap;gap:6px 22px;justify-content:space-between;margin-top:6px;font-size:12.5px;opacity:.85}
+.ctl{display:flex;gap:8px}
+button,.pick{font:600 12.5px var(--sans);color:var(--haze);background:rgba(255,241,230,.12);border:1px solid rgba(255,241,230,.35);border-radius:99px;padding:7px 14px;cursor:pointer;backdrop-filter:blur(8px)}
+button:hover,.pick:hover{background:rgba(255,241,230,.24)}
+button:focus-visible,.pick:focus-within{outline:2px solid var(--sea);outline-offset:2px}
+#intro{position:fixed;inset:0;z-index:9;display:grid;place-content:center;gap:18px;text-align:center;padding:24px;
+background:linear-gradient(180deg,#2a1d63,#a65c8f 55%,#ffb38a)}
+#intro h2{font:italic 400 clamp(44px,9vw,120px)/.92 var(--serif)}
+#intro p{max-width:46ch;margin:0 auto;opacity:.9;line-height:1.5}
+#intro .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#go{font-size:15px;padding:12px 26px;background:var(--haze);color:var(--ink)}
+.pick input{position:absolute;opacity:0;width:0}
+#note{font-size:12px;opacity:.8;min-height:1.2em}
+@media(max-width:640px){#panel{top:auto;bottom:150px}dl{display:none}header p{display:none}}
+@media(prefers-reduced-motion:reduce){#stage{transform:none!important}}
+#spd{margin-top:10px;font:400 clamp(44px,6vw,76px)/1 var(--serif);font-variant-numeric:tabular-nums}
+#spd small{font:600 12px var(--sans);opacity:.7;margin-left:8px}
+.bar{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:6px;font-size:12.5px}
+.bar b{display:block;position:relative;width:150px;height:6px;border-radius:3px;background:rgba(255,241,230,.18);overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--peach)}
+.bar.t i{background:var(--sea)}
+#tag{margin-top:10px;font-size:11.5px;opacity:.6}
+#feed{position:fixed;left:max(24px,env(safe-area-inset-left));bottom:178px;list-style:none;padding:0;font-size:12.5px;line-height:1.6;max-width:min(430px,60vw);text-shadow:0 1px 14px rgba(18,13,43,.8)}
+#feed li{opacity:0}
+#feed li b{color:var(--peach);font-variant-numeric:tabular-nums;margin-right:8px}
+#feed li:nth-last-child(1){opacity:1}#feed li:nth-last-child(2){opacity:.8}#feed li:nth-last-child(3){opacity:.62}
+#feed li:nth-last-child(4){opacity:.46}#feed li:nth-last-child(5){opacity:.32}#feed li:nth-last-child(6){opacity:.2}#feed li:nth-last-child(7){opacity:.1}
+@media(max-width:640px){#feed{display:none}.bar,#tag{display:none}}
+</style>
+</head>
+<body>
+<div id="scene"><div id="stage">
+  <video id="v" src="lap.mp4" playsinline loop preload="auto"></video>
+  <canvas id="echo"></canvas>
+</div></div>
+<div id="vig"></div>
+<header><h1>Monaco, in<br>one breath</h1><p>Lando Norris, pole lap, 2025 Monaco Grand Prix</p></header>
+<div id="panel">
+  <div id="clock">0:00.000</div>
+  <div id="corner">Start/finish</div>
+  <div id="spd">0<small>km/h</small></div>
+  <div class="bar">Brake<b><i id="bb"></i></b></div>
+  <div class="bar t">Throttle<b><i id="bt"></i></b></div>
+  <dl>
+    <dt>Cornering load</dt><dd id="gl">0.0 g</dd>
+    <dt>Braking load</dt><dd id="gb">0.0 g</dd>
+    <dt>Distance</dt><dd id="ds">0 m</dd>
+    <dt>Visual intensity</dt><dd id="mi">0%</dd>
+    <dt>Light</dt><dd id="li">0%</dd>
+    <dt>Palette</dt><dd><span id="sw"></span><span id="hx">#888888</span></dd>
+    <dt>Lap mapped</dt><dd id="sc">0%</dd>
+  </dl>
+  <div id="tag">Speed, pedals and g-forces are estimated from the picture's optical flow</div>
+</div>
+<ul id="feed"></ul>
+<div id="bottom">
+  <canvas id="tl"></canvas>
+  <div id="facts">
+    <span>3.337 km circuit &middot; 1:09.954 &middot; average about 171.7 km/h</span>
+    <span id="peak">Ride once to map the lap</span>
+    <span class="ctl"><button id="bd">Trail: on</button><button id="bs">Speed: 1x</button><button id="bp">Pause</button></span>
+  </div>
+</div>
+<div id="intro">
+  <h2>Monaco, in<br>one breath</h2>
+  <p>Seventy seconds through the harbour streets, softened into a dream. While it plays, the page tracks optical flow across the road ahead (the trail is drawn on top and never alters the footage it measures) to estimate speed, braking and g-forces, and streams the data as you ride.</p>
+  <div class="row">
+    <button id="go">Start the ride</button>
+    <label class="pick">Choose video file<input id="file" type="file" accept="video/*"></label>
+  </div>
+  <div id="note">Keep lap.mp4 in the same folder as this page.</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const v=$('v'),ec=$('echo'),ex=ec.getContext('2d');
+const tl=$('tl'),lc=tl.getContext('2d');
+const AW=160,AH=90,an=document.createElement('canvas');an.width=AW;an.height=AH;
+const ac=an.getContext('2d',{willReadFrequently:true});
+const OFFSET=.9,LAP=69.954,LAPV=LAP-OFFSET,SLOTS=700,AVG=171.7,LEN=3337,VMAX=330;
+const STOPS=[[0,'Start/finish'],[6,'Sainte Devote'],[13,'Massenet'],[15.5,'Casino Square'],[22,'Mirabeau'],[25,'Grand Hotel hairpin'],[30,'Portier'],[34,'The tunnel'],[43,'Nouvelle chicane'],[47,'Tabac'],[52,'Swimming pool'],[63,'La Rascasse'],[66,'Anthony Noghes']];
+const hist=new Array(SLOTS).fill(null);
+const S={m:0,l:.4,p:0,yaw:0,v:0,a:0,g:0,b:0,th:0,c:[128,128,128]};
+const M={scale:60,cum:null,mean:1,avgL:.4};
+const st={brk:false,brkV:0,tun:false,peakG:0,split:-1,corner:''};
+const EN=24,EG=[];let lastCap=0,yawAcc=0,pX=.5,pY=.5,tX=.5,tY=.5;
+let prev=null,prevT=0,mMax=8,tainted=false,frame=0,seeking=false,lastV=0;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const fmt=t=>{t=clamp(t,0,LAP);const m=Math.floor(t/60);return m+':'+(t-m*60).toFixed(3).padStart(6,'0')};
+const lapT=()=>Math.min(LAP,v.currentTime+OFFSET);
+const slot=t=>Math.min(SLOTS-1,Math.floor(t/LAPV*SLOTS));
+
+function analyse(){
+  const T=v.currentTime,dt=T-prevT;
+  if(dt>=0&&dt<.012)return;
+  ac.drawImage(v,0,0,AW,AH);
+  let d;try{d=ac.getImageData(0,0,AW,AH).data}catch(e){if(!tainted){tainted=true;$('peak').textContent='Analysis blocked by the browser: use "Choose video file" or a local server.'}return}
+  const n=AW*AH,cur=new Float32Array(n);let r=0,g=0,b=0;
+  for(let i=0;i<n;i++){const R=d[i*4],G=d[i*4+1],B=d[i*4+2];r+=R;g+=G;b+=B;cur[i]=.299*R+.587*G+.114*B}
+  r/=n;g/=n;b/=n;S.c=[r|0,g|0,b|0];
+  S.l+=((.299*r+.587*g+.114*b)/255-S.l)*.25;
+  if(prev&&dt>0&&dt<.2){
+    // block-matching optical flow over the road and scenery (top 55% of frame)
+    let sE=0,cnt=0,sFx=0,mot=0;
+    for(let by=0;by<4;by++)for(let bx=0;bx<8;bx++){
+      const x0=8+bx*18,y0=4+by*12;let best=1e9,bdx=0,bdy=0,zero=0;
+      for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){
+        let sad=0;
+        for(let y=0;y<10;y+=2){const o=(y0+y)*AW+x0,o2=(y0+y+dy)*AW+x0+dx;
+          for(let x=0;x<16;x+=2)sad+=Math.abs(cur[o+x]-prev[o2+x])}
+        if(!dx&&!dy)zero=sad;
+        if(sad<best){best=sad;bdx=dx;bdy=dy}
+      }
+      const fx=-bdx,fy=-bdy,rx=x0+8-80,ry=y0+5-38,rl=Math.hypot(rx,ry);
+      sFx+=fx;mot+=zero/40;
+      if(rl>14){sE+=((fx*rx+fy*ry)/rl)/rl;cnt++}
+    }
+    const eps=Math.max(0,sE/cnt/dt),yaw=(sFx/32/dt)/(AW/1.75),m=mot/32;
+    mMax=Math.max(mMax*.9995,m);
+    S.m+=(m/mMax-S.m)*.25;S.p+=(eps-S.p)*.18;S.yaw+=(yaw-S.yaw)*.18;yawAcc+=S.yaw*dt;
+    S.v=clamp(S.p*M.scale,0,VMAX);
+    S.a+=(((S.v-lastV)/dt)-S.a)*.12;
+    S.a=clamp(S.a,-200,120);
+    S.g=Math.abs(S.v/3.6*S.yaw)/9.81;
+    S.b=clamp(-S.a/110,0,1);
+    S.th=S.b>.12?0:clamp(.45+S.a/50,0,1);
+    lastV=S.v;
+    if(T<LAPV+.2)hist[slot(lapT())]={m:S.m,l:S.l,c:S.c,p:S.p,g:S.g,b:S.b};
+  }
+  prev=cur;prevT=T;
+  const hex='#'+S.c.map(x=>x.toString(16).padStart(2,'0')).join('');
+  $('sw').style.background=hex;$('hx').textContent=hex;
+}
+
+// calibrate: the lap's mean speed must equal the known average, distance must sum to the circuit length
+function model(){
+  let sum=0,n=0;for(const s of hist)if(s){sum+=s.p;n++}
+  if(!n)return;M.mean=sum/n||1;M.scale=AVG/M.mean;
+  const cum=new Float32Array(SLOTS+1);
+  for(let i=0;i<SLOTS;i++)cum[i+1]=cum[i]+(hist[i]?hist[i].p:M.mean);
+  M.cum=cum;M.avgL=hist.reduce((a,s)=>a+(s?s.l:0),0)/n;
+}
+const distAt=t=>M.cum?LEN*M.cum[slot(t)]/M.cum[SLOTS]:LEN*t/LAP;
+
+function log(t,txt){
+  const li=document.createElement('li');li.innerHTML=`<b>${fmt(t)}</b>${txt}`;
+  const f=$('feed');f.appendChild(li);while(f.children.length>8)f.removeChild(f.firstChild);
+}
+function events(t){
+  const kv=Math.round(S.v);
+  if(!st.brk&&S.b>.55){st.brk=true;st.brkV=S.v;log(t,`Braking zone, on the brakes at about ${kv} km/h`)}
+  else if(st.brk&&S.b<.15){st.brk=false;log(t,`Off the brakes at about ${kv} km/h, shed about ${Math.round(st.brkV-S.v)}`)}
+  if(S.g>st.peakG+.4&&S.g>2){st.peakG=S.g;log(t,`Cornering load about ${S.g.toFixed(1)} g`)}
+  if(!st.tun&&M.avgL&&S.l<M.avgL*.5){st.tun=true;log(t,`Into the tunnel, light down ${Math.round((1-S.l/M.avgL)*100)}%`)}
+  else if(st.tun&&S.l>M.avgL*.8){st.tun=false;log(t,'Out into daylight')}
+  const sp=Math.floor(t/10);
+  if(sp!==st.split){st.split=sp;if(sp>0)log(t,`${Math.round(distAt(t))} m covered, about ${kv} km/h`)}
+  let c=STOPS[0][1];STOPS.forEach(([s,nm])=>{if(t>=s)c=nm});
+  if(c!==st.corner){st.corner=c;$('corner').textContent=c;if(t>1)log(t,`${c} at about ${kv} km/h`)}
+}
+function readout(t){
+  $('clock').textContent=fmt(t);
+  $('spd').innerHTML=Math.round(S.v)+'<small>km/h</small>';
+  $('bb').style.width=S.b*100+'%';$('bt').style.width=S.th*100+'%';
+  $('gl').textContent=S.g.toFixed(1)+' g';$('gb').textContent=(Math.abs(S.a)/3.6/9.81).toFixed(1)+' g';
+  $('ds').textContent=Math.round(distAt(t))+' m of '+LEN;
+  $('mi').textContent=Math.round(S.m*100)+'%';$('li').textContent=Math.round(S.l*100)+'%';
+}
+function summary(){
+  let n=0,top=0,low=1e9,pg=0,zones=0,inb=false;
+  hist.forEach(s=>{if(!s)return;n++;const k=s.p*M.scale;top=Math.max(top,k);low=Math.min(low,k);pg=Math.max(pg,s.g);
+    if(s.b>.5&&!inb){zones++;inb=true}else if(s.b<.2)inb=false});
+  $('sc').textContent=Math.round(n/SLOTS*100)+'%';
+  if(n>=SLOTS*.9)$('peak').textContent=`Top about ${Math.round(Math.min(top,VMAX))} km/h · slowest about ${Math.round(low)} · peak ${pg.toFixed(1)} g · ${zones} braking zones`;
+}
+
+// 3D echo tunnel: past frames recede toward the vanishing point, swinging with the corners
+function drawEcho(){
+  const dpr=Math.min(devicePixelRatio||1,1.5),W=Math.round(innerWidth*dpr),H=Math.round(innerHeight*dpr);
+  if(ec.width!==W||ec.height!==H){ec.width=W;ec.height=H}
+  ex.clearRect(0,0,W,H);
+  if(document.body.classList.contains('clear')||!EG.length)return;
+  ex.globalCompositeOperation='lighter';ex.lineJoin='round';
+  const cx=W/2,cy=H/2,pts=[];
+  for(let k=0;k<EG.length;k++){
+    const g=EG[k],s=1/(1+(k+1)*.15),z=k/EN;
+    const vx=cx+clamp((yawAcc-g.y)*W*.6,-W*.35,W*.35),vy=H*.4;
+    const mx=vx+(cx-vx)*s,my=vy+(cy-vy)*s,w=W*s,hh=H*s,br=g.b>.5;
+    const col=br?'255,110,90':`${Math.min(255,g.c[0]*1.3+70)|0},${Math.min(255,g.c[1]*1.3+70)|0},${Math.min(255,g.c[2]*1.3+90)|0}`;
+    ex.strokeStyle=`rgba(${col},${(1-z)*.6})`;ex.shadowColor=`rgba(${col},.9)`;ex.shadowBlur=16*dpr;
+    ex.lineWidth=(2.6-z*1.6)*(br?1.6:1)*dpr;
+    ex.strokeRect(mx-w/2,my-hh/2,w,hh);pts.push([mx,my,w,hh]);
+  }
+  const p0=pts[0],pl=pts[pts.length-1];
+  ex.shadowBlur=0;ex.strokeStyle='rgba(255,241,230,.18)';ex.lineWidth=dpr;ex.beginPath();
+  for(const sx of[-1,1])for(const sy of[-1,1]){
+    ex.moveTo(p0[0]+sx*p0[2]/2,p0[1]+sy*p0[3]/2);ex.lineTo(pl[0]+sx*pl[2]/2,pl[1]+sy*pl[3]/2)}
+  ex.stroke();
+}
+function drawTL(){
+  const dpr=devicePixelRatio||1,W=tl.clientWidth*dpr,H=tl.clientHeight*dpr;
+  if(tl.width!==W){tl.width=W;tl.height=H}
+  lc.clearRect(0,0,W,H);
+  const bw=W/SLOTS,base=H-24*dpr,maxH=base-18*dpr;
+  for(let i=0;i<SLOTS;i++){const s=hist[i];if(!s)continue;
+    const hh=Math.max(3*dpr,clamp(s.p*M.scale/VMAX,0,1)*maxH);
+    lc.fillStyle=`rgb(${s.c[0]*1.1+40|0},${s.c[1]*1.1+30|0},${s.c[2]*1.1+50|0})`;
+    lc.fillRect(i*bw,base-hh,Math.ceil(bw),hh);
+    if(s.b>.5){lc.fillStyle='#ffb38a';lc.fillRect(i*bw,4*dpr,Math.ceil(bw),5*dpr)}
+  }
+  lc.strokeStyle='#7fe0d4';lc.lineWidth=1.5*dpr;lc.beginPath();let on=false;
+  for(let i=0;i<SLOTS;i++){const s=hist[i];if(!s){on=false;continue}
+    const y=base-clamp(s.g/5,0,1)*maxH,x=i*bw;on?lc.lineTo(x,y):lc.moveTo(x,y);on=true}
+  lc.stroke();
+  lc.font=`${11*dpr}px Figtree,sans-serif`;lc.textBaseline='top';let last=-99;
+  STOPS.forEach(([t,nm])=>{const x=Math.max(0,t-OFFSET)/LAPV*W;
+    lc.fillStyle='rgba(255,241,230,.5)';lc.fillRect(x,base+2*dpr,dpr,6*dpr);
+    if(x-last>74*dpr&&x<W-60*dpr){lc.fillStyle='rgba(255,241,230,.8)';lc.fillText(nm,x+3*dpr,base+9*dpr);last=x}});
+  const px=Math.min(1,v.currentTime/LAPV)*W;
+  lc.fillStyle='#fff1e6';lc.fillRect(px-dpr,12*dpr,2*dpr,base-10*dpr);
+  lc.beginPath();lc.arc(px,12*dpr,5*dpr,0,7);lc.fill();
+}
+function tick(){
+  frame++;
+  if(v.currentTime>=LAPV+.25){v.currentTime=0;prev=null;st.peakG=0;st.split=-1;EG.length=0}
+  const T=performance.now();
+  if(!v.paused){
+    analyse();
+    if(frame%15===0){model();summary()}
+    const t=lapT();events(t);readout(t);
+    if(T-lastCap>55){lastCap=T;EG.unshift({c:S.c.slice(),y:yawAcc,b:S.b});if(EG.length>EN)EG.pop()}
+  }
+  pX+=(tX-pX)*.05;pY+=(tY-pY)*.05;
+  $('stage').style.transform=`rotateX(${(.5-pY)*7+Math.sin(T/2000)*.5}deg) rotateY(${(pX-.5)*10+Math.sin(T/2500)*.8}deg) rotateZ(${clamp(-S.yaw*4,-3,3)}deg)`;
+  drawEcho();drawTL();requestAnimationFrame(tick);
+}
+addEventListener('pointermove',e=>{tX=e.clientX/innerWidth;tY=e.clientY/innerHeight});
+function seekEv(e){const r=tl.getBoundingClientRect();v.currentTime=clamp((e.clientX-r.left)/r.width,0,1)*LAPV;prev=null;st.split=-1}
+tl.addEventListener('pointerdown',e=>{seeking=true;seekEv(e)});
+addEventListener('pointermove',e=>{if(seeking)seekEv(e)});
+addEventListener('pointerup',()=>seeking=false);
+function start(){$('intro').style.display='none';v.muted=false;v.play().catch(()=>{v.muted=true;v.play()})}
+$('go').onclick=start;
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;v.src=URL.createObjectURL(f);tainted=false;prev=null;start()};
+v.addEventListener('error',()=>{$('note').textContent='lap.mp4 not found next to this page. Choose the video file instead.'});
+$('bd').onclick=()=>{document.body.classList.toggle('clear');$('bd').textContent='Trail: '+(document.body.classList.contains('clear')?'off':'on')};
+const sp=[1,.5,.25];let si=0;
+$('bs').onclick=()=>{si=(si+1)%3;v.playbackRate=sp[si];$('bs').textContent='Speed: '+sp[si]+'x'};
+const tp=()=>{v.paused?v.play():v.pause();$('bp').textContent=v.paused?'Play':'Pause'};
+$('bp').onclick=tp;
+addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();tp()}if(e.key==='d')$('bd').click();if(e.key==='s')$('bs').click()});
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
